@@ -76,3 +76,19 @@ def create_parser(file_path: str, language_map: Dict[str, Language]) -> tree_sit
     if ext not in language_map:
         raise ValueError(f"Unsupported file extension: {ext}")
     return tree_sitter.Parser(language=language_map[ext])
+
+
+def is_supported_file(file_path):
+    """Check if file has a supported extension"""
+    supported_extensions = {
+        '.py',  # Python
+        '.cpp', '.h', '.hpp', '.c',  # C/C++
+        '.go',   # Go
+        '.js', '.ts', '.jsx', '.tsx',  # JavaScript/TypeScript
+        '.rs',   # Rust
+        '.java', # Java
+        '.kt',   # Kotlin
+        '.swift' # Swift
+    }
+    _, ext = os.path.splitext(file_path)
+    return ext.lower() in supported_extensions
