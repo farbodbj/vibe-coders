@@ -1,5 +1,6 @@
-import tree_sitter
 import os
+
+import tree_sitter
 
 from models import ProjectKnowledgeBase
 
@@ -37,7 +38,7 @@ class PythonLangConf(BaseLangConf):
             if child.type == 'identifier':
                 return child.text.decode()
         return None
-    
+
     @classmethod
     def generateIdentifier(cls, project: ProjectKnowledgeBase, file_path: str, node: tree_sitter.Node):
         return f"{project.name}:{file_path}:{cls.generateNodePath(node)}"
@@ -55,7 +56,7 @@ class PythonLangConf(BaseLangConf):
 
             node = node.parent
         return '.'.join(reversed(sections))
-      
+
 
 class JavaScriptLangConf(BaseLangConf):
     @classmethod
@@ -156,4 +157,3 @@ def get_lang_conf_for_file(file_path):
         return RustLangConf
     else:
         raise ValueError(f"Unsupported file type: {ext}")
-
