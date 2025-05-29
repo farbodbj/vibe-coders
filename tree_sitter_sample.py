@@ -25,7 +25,7 @@ def generate_file_tree(path):
 
         if os.path.isdir(item_path):
             ret += generate_file_tree(item_path)
-        elif item_path.endswith('.py'):
+        else:
             ret.append(item_path)
 
     return ret
@@ -49,6 +49,7 @@ def run():
     print(py_files)
 
     for f in py_files:
+        print(f)
         parser = FileParser(f)
 
         parser.analyze_file()

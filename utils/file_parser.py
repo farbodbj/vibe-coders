@@ -1,15 +1,19 @@
-import tree_sitter
-import tree_sitter_python as tspython
+from tree_sitter import Parser
 from openai import OpenAI
+import tree_sitter
+import tree_sitter_python
+import tree_sitter_javascript
+import tree_sitter_cpp
+import tree_sitter_go
+import tree_sitter_rust
+from typing import Optional
+from utils.helper import get_language_map, get_lang_conf_for_file, create_parser
 
-from utils.lang_conf import BaseLangConf, PythonLangConf
-
-lang = tree_sitter.Language(tspython.language())
-parser = tree_sitter.Parser(lang)
+LANGUAGE_MAP = get_language_map()
 
 
-class OpenAIClient():
-    _client = None
+class OpenAIClient:
+    _client: Optional[OpenAI] = None
 
     def __new__(cls, *args, **kwargs):
         if cls._client:
@@ -20,35 +24,26 @@ class OpenAIClient():
         return cls._client
 
 
-class FileParser():
-    file = None
-    file_bytes: bytes = None
-    tree: tree_sitter.Tree = None
-    lang_conf: BaseLangConf = None
-    client: OpenAI = None
-
-    def __init__(self, path):
+class FileParser:
+    def __init__(self, path: str):
         self.path = path
-        self.parser = parser
-        self.lang_conf = PythonLangConf
+        self.lang_conf = get_lang_conf_for_file(path)
+        self.parser = create_parser(path, LANGUAGE_MAP)
         self.client = OpenAIClient()
 
     def analyze_file(self):
-        with open(self.path) as file:
-            self.file = file
-            self.file_bytes = file.read().encode()
+        with open(self.path, 'rb') as file:
+            self.file_bytes = file.read()
             self.tree = self.parser.parse(self.file_bytes)
-
             self.generate_tags(self.tree.root_node)
 
     def generate_method_doc(self, node: tree_sitter.Node):
-        # source = self.file_bytes[node.start_byte:node.end_byte].decode('utf-8')
         source = node.text.decode('utf-8')
         response = self.client.responses.create(
             model="gpt-4.1-nano",
             input=[
                 {"role": "system", "content": f"""
-            Your task is to generate a doc string along with definitions for this {node.type}
+            Your task is to generate a doc string along with definitions  this {node.type}
                         """},
                 {"role": "user", "content": source},
             ]
@@ -59,3 +54,4 @@ class FileParser():
         for node in root.children:
             if self.lang_conf.isDocNeeded(node):
                 self.generate_method_doc(node)
+            self.generate_tags(node)
