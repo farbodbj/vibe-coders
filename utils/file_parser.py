@@ -7,7 +7,9 @@ import tree_sitter_cpp
 import tree_sitter_go
 import tree_sitter_rust
 from typing import Optional
-from utils.helper import get_lang_conf_for_file, create_parser
+from utils.helper import get_lang_conf_for_file
+
+from models import Node, ProjectKnowledgeBase
 
 
 
@@ -23,11 +25,33 @@ class OpenAIClient:
         return cls._client
 
 
-class FileParser:
-    def __init__(self, path: str):
+
+class FileParser():
+    file = None
+    file_bytes: bytes = None
+    tree: tree_sitter.Tree = None
+    lang_conf: BaseLangConf = None
+    client: OpenAI = None
+
+    file_ref: Node = None
+
+    def __init__(self, project: ProjectKnowledgeBase, path: str):
         self.path = path
         self.parser, self.lang_conf, = get_lang_conf_for_file(path)
         self.client = OpenAIClient()
+
+        self.project = project
+
+        self.file_ref = Node(
+            gid=f"{project.name}:{path}",
+            identifier=path,
+            file=path,
+            full_path=path,
+            path=path,
+
+            node_type="file",
+        )
+        project.nodes[self.file_ref.gid] = self.file_ref
 
     def analyze_file(self):
         with open(self.path, 'rb') as file:
@@ -47,7 +71,18 @@ class FileParser:
                 {"role": "user", "content": source},
             ]
         )
-        print(self.lang_conf.getMethodName(node), response.output_text)
+
+        saved_node = Node(
+            gid=self.lang_conf.generateIdentifier(
+                self.project, self.path, node),
+            identifier=self.lang_conf.getMethodName(node),
+            file=self.path,
+            path=self.lang_conf.generateNodePath(node),
+            node_type=node.type,
+            short_doc=response.output_text
+        )
+
+        self.project.nodes[saved_node.gid] = saved_node
 
     def generate_tags(self, root: tree_sitter.Node):
         for node in root.children:
