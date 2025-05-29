@@ -79,6 +79,23 @@ class JavaScriptLangConf(BaseLangConf):
                     return child.text.decode()
         return None
 
+    @classmethod
+    def generateIdentifier(cls, project: ProjectKnowledgeBase, file_path: str, node: tree_sitter.Node):
+        return f"{project.name}:{file_path}:{cls.generateNodePath(node)}"
+
+    @classmethod
+    def isWorthyScope(cls, node: tree_sitter.Node):
+        return node.type in ['function_declaration', 'method_definition', 'class_declaration']
+
+    @classmethod
+    def generateNodePath(cls, node: tree_sitter.Node):
+        sections = []
+        while node:
+            if cls.isWorthyScope(node):
+                sections.append(cls.getMethodName(node))
+            node = node.parent
+        return '.'.join(reversed(sections))
+
 
 class CppLangConf(BaseLangConf):
     @classmethod
@@ -96,11 +113,34 @@ class CppLangConf(BaseLangConf):
                             for id_child in subchild.children:
                                 if id_child.type == 'identifier':
                                     return id_child.text.decode()
+                elif child.type == 'function_declarator':
+                    for id_child in child.children:
+                        if id_child.type == 'identifier' or id_child.type == 'field_identifier':
+                            return id_child.text.decode()
         elif node.type == 'class_specifier':
             for child in node.children:
                 if child.type == 'type_identifier':
                     return child.text.decode()
         return None
+
+    @classmethod
+    def generateIdentifier(cls, project: ProjectKnowledgeBase, file_path: str, node: tree_sitter.Node):
+        return f"{project.name}:{file_path}:{cls.generateNodePath(node)}"
+
+    @classmethod
+    def isWorthyScope(cls, node: tree_sitter.Node):
+        return node.type in ['function_definition', 'class_specifier', 'namespace_definition']
+
+    @classmethod
+    def generateNodePath(cls, node: tree_sitter.Node):
+        sections = []
+        while node:
+            if cls.isWorthyScope(node):
+                name = cls.getMethodName(node)
+                if name:  # Only add if we found a name
+                    sections.append(name)
+            node = node.parent
+        return '::'.join(reversed(sections))  # C++ typically uses :: for scope resolution
 
 
 class GoLangConf(BaseLangConf):
@@ -122,6 +162,25 @@ class GoLangConf(BaseLangConf):
                             return subchild.text.decode()
         return None
 
+    @classmethod
+    def generateIdentifier(cls, project: ProjectKnowledgeBase, file_path: str, node: tree_sitter.Node):
+        return f"{project.name}:{file_path}:{cls.generateNodePath(node)}"
+
+    @classmethod
+    def isWorthyScope(cls, node: tree_sitter.Node):
+        return node.type in ['function_declaration', 'method_declaration', 'type_declaration']
+
+    @classmethod
+    def generateNodePath(cls, node: tree_sitter.Node):
+        sections = []
+        while node:
+            if cls.isWorthyScope(node):
+                name = cls.getMethodName(node)
+                if name:  # Only add if we found a name
+                    sections.append(name)
+            node = node.parent
+        return '.'.join(reversed(sections))
+
 
 class RustLangConf(BaseLangConf):
     @classmethod
@@ -139,6 +198,25 @@ class RustLangConf(BaseLangConf):
                 if child.type == 'type_identifier':
                     return child.text.decode()
         return None
+
+    @classmethod
+    def generateIdentifier(cls, project: ProjectKnowledgeBase, file_path: str, node: tree_sitter.Node):
+        return f"{project.name}:{file_path}:{cls.generateNodePath(node)}"
+
+    @classmethod
+    def isWorthyScope(cls, node: tree_sitter.Node):
+        return node.type in ['function_item', 'impl_item', 'trait_item', 'struct_item', 'mod_item']
+
+    @classmethod
+    def generateNodePath(cls, node: tree_sitter.Node):
+        sections = []
+        while node:
+            if cls.isWorthyScope(node):
+                name = cls.getMethodName(node)
+                if name:  # Only add if we found a name
+                    sections.append(name)
+            node = node.parent
+        return '::'.join(reversed(sections))  # Rust uses :: for path separation
 
 
 def get_lang_conf_for_file(file_path):
