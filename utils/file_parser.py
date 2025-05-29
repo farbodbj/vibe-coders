@@ -4,7 +4,6 @@ import tree_sitter
 from openai import OpenAI
 
 from models import Node, ProjectKnowledgeBase
-from utils.helper import get_lang_conf_for_file
 from utils.lang_conf import BaseLangConf
 
 
@@ -67,7 +66,6 @@ class FileParser():
                 {"role": "user", "content": source},
             ]
         )
-
         saved_node = Node(
             gid=self.lang_conf.generateIdentifier(
                 self.project, self.path, node),
