@@ -1,11 +1,11 @@
 from langchain.tools import tool
 from langchain_openai.chat_models import ChatOpenAI
 import tree_sitter
+from llms import openai_llm
 
 class DocGen:
     def __init__(self, llm: ChatOpenAI):
         self._llm = llm
-        
         
     def _generate_doc(self, node_source: str, node_name: str):
         prompt = f'''Document the function {node_name} in detail, including its purpose, input parameters, output values, and any exceptions it may throw.
@@ -30,14 +30,13 @@ class DocGen:
         method_name = self._get_method_name(ts)
         return self._generate_doc(method_name, method_source)
     
-
-def generate_method(ts: tree_sitter.Node, file_bytes, indt: str = ""):
-    for node in ts.children:
-        if node.type == 'function_definition':
-            return generate_doc(node, file_bytes)
-        # if node.type == 'class_definition':
-        #     return generate_doc(node, file_bytes)
-
+    
+    def generate_method(self, ts: tree_sitter.Node, file_bytes, indt: str = ""):
+        for node in ts.children:
+            if node.type == 'function_definition':
+                return self.generate_doc(node, file_bytes)
+            # if node.type == 'class_definition':
+            #     return generate_doc(node, file_bytes)
 
 
 @tool
@@ -51,3 +50,7 @@ def generate_directory_documentation():
 @tool
 def generate_project_documentation():
     pass
+
+
+
+doc_gen = DocGen(llm = openai_llm)
