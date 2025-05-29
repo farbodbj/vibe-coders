@@ -3,18 +3,10 @@ import os
 import sys
 
 import dotenv
-import tree_sitter
-import tree_sitter_python as tspython
-from openai import OpenAI
 
 from utils.file_parser import FileParser
 
 dotenv.load_dotenv()
-
-
-client = OpenAI(
-    base_url="https://api.metisai.ir/openai/v1"
-)
 
 
 def generate_file_tree(path):
