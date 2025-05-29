@@ -7,9 +7,8 @@ import tree_sitter_cpp
 import tree_sitter_go
 import tree_sitter_rust
 from typing import Optional
-from utils.helper import get_language_map, get_lang_conf_for_file, create_parser
+from utils.helper import get_lang_conf_for_file, create_parser
 
-LANGUAGE_MAP = get_language_map()
 
 
 class OpenAIClient:
@@ -27,12 +26,12 @@ class OpenAIClient:
 class FileParser:
     def __init__(self, path: str):
         self.path = path
-        self.lang_conf = get_lang_conf_for_file(path)
-        self.parser = create_parser(path, LANGUAGE_MAP)
+        self.parser, self.lang_conf, = get_lang_conf_for_file(path)
         self.client = OpenAIClient()
 
     def analyze_file(self):
         with open(self.path, 'rb') as file:
+            self.file = file
             self.file_bytes = file.read()
             self.tree = self.parser.parse(self.file_bytes)
             self.generate_tags(self.tree.root_node)
@@ -43,7 +42,7 @@ class FileParser:
             model="gpt-4.1-nano",
             input=[
                 {"role": "system", "content": f"""
-            Your task is to generate a doc string along with definitions  this {node.type}
+            Your task is to generate a doc string along with definitions for this {node.type}
                         """},
                 {"role": "user", "content": source},
             ]
