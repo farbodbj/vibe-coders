@@ -9,7 +9,10 @@ from openai import OpenAI
 
 dotenv.load_dotenv()
 
-client = OpenAI()
+
+client = OpenAI(
+    base_url="https://api.metisai.ir/openai/v1"
+)
 
 
 def generate_file_tree(path):
