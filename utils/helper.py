@@ -21,11 +21,11 @@ def initialize_languages() -> Dict[str, Language]:
     """Initialize and return all language parsers"""
     try:
         languages = {
-            'python': Language(tree_sitter_python.language()),
-            'javascript': Language(tree_sitter_javascript.language()),
-            'cpp': Language(tree_sitter_cpp.language()),
-            'go': Language(tree_sitter_go.language()),
-            'rust': Language(tree_sitter_rust.language())
+            'python': tree_sitter.Parser(Language(tree_sitter_python.language())),
+            'javascript': tree_sitter.Parser(Language(tree_sitter_javascript.language())),
+            'cpp': tree_sitter.Parser(Language(tree_sitter_cpp.language())),
+            'go': tree_sitter.Parser(Language(tree_sitter_go.language())),
+            'rust': tree_sitter.Parser(Language(tree_sitter_rust.language()))
         }
         return languages
     except Exception as e:
@@ -36,19 +36,7 @@ def initialize_languages() -> Dict[str, Language]:
         ) from e
 
 
-def get_language_map() -> Dict[str, Language]:
-    """Return mapping of file extensions to language parsers"""
-    languages = initialize_languages()
-    return {
-        '.py': languages['python'],
-        '.js': languages['javascript'],
-        '.cpp': languages['cpp'],
-        '.hpp': languages['cpp'],
-        '.cc': languages['cpp'],
-        '.cxx': languages['cpp'],
-        '.go': languages['go'],
-        '.rs': languages['rust']
-    }
+languages = initialize_languages()
 
 
 def get_lang_conf_for_file(file_path: str) -> Type[BaseLangConf]:
@@ -57,15 +45,15 @@ def get_lang_conf_for_file(file_path: str) -> Type[BaseLangConf]:
     ext = ext.lower()
 
     if ext == '.py':
-        return PythonLangConf
+        return languages['python'], PythonLangConf
     elif ext == '.js':
-        return JavaScriptLangConf
-    elif ext in ['.cpp', '.hpp', '.cc', '.cxx']:
-        return CppLangConf
+        return languages['javascript'], JavaScriptLangConf
+    elif ext in ['.cpp', '.hpp', '.cc', '.cxx', '.h']:
+        return languages['cpp'], CppLangConf
     elif ext == '.go':
-        return GoLangConf
+        return languages['go'], GoLangConf
     elif ext == '.rs':
-        return RustLangConf
+        return languages['rust'], RustLangConf
     else:
         raise ValueError(f"Unsupported file type: {ext}")
 
@@ -87,8 +75,6 @@ def is_supported_file(file_path):
         '.js', '.ts', '.jsx', '.tsx',  # JavaScript/TypeScript
         '.rs',   # Rust
         '.java', # Java
-        '.kt',   # Kotlin
-        '.swift' # Swift
     }
     _, ext = os.path.splitext(file_path)
     return ext.lower() in supported_extensions
