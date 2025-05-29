@@ -7,6 +7,8 @@ import tree_sitter
 import tree_sitter_python as tspython
 from openai import OpenAI
 
+from utils.file_parser import FileParser
+
 dotenv.load_dotenv()
 
 
@@ -37,51 +39,6 @@ def generate_file_tree(path):
     return ret
 
 
-def get_method_name(node: tree_sitter.Node):
-    for child in node.children:
-        if child.type == 'identifier':
-            return child.text.decode()
-    return None
-
-
-def generate_doc(ts: tree_sitter.Node, file_bytes):
-    source = file_bytes[ts.start_byte:ts.end_byte].decode('utf-8')
-    print(source)
-    response = client.responses.create(
-        model="gpt-4.1",
-        input=[
-            {"role": "system", "content": f"""
-Your task is to generate a doc string along with definitions for this {ts.type}
-            """},
-            {"role": "user", "content": source},
-        ]
-    )
-    print(get_method_name(ts), response.output_text)
-
-
-def generate_methods(ts: tree_sitter.Node, file_bytes, indt: str = ""):
-    for node in ts.children:
-        print(indt, node.type)
-        if node.type == 'function_definition':
-            generate_doc(node, file_bytes)
-
-        if node.type == 'class_definition':
-            generate_doc(node, file_bytes)
-            generate_methods(node, file_bytes, indt + '---')
-
-
-lang = tree_sitter.Language(tspython.language())
-parser = tree_sitter.Parser(lang)
-
-
-def analyze_file(path):
-    with open(path, 'r') as file:
-        bts = file.read().encode()
-        file_tree = parser.parse(bts)
-
-        generate_methods(file_tree.root_node, bts, "")
-
-
 def run():
     agp = argparse.ArgumentParser()
 
@@ -100,7 +57,9 @@ def run():
     print(py_files)
 
     for f in py_files:
-        analyze_file(f)
+        parser = FileParser(f)
+
+        parser.analyze_file()
 
 
 if __name__ == '__main__':
