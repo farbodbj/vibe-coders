@@ -7,6 +7,8 @@ import tree_sitter
 import tree_sitter_python as tspython
 from openai import OpenAI
 
+import gitignore
+
 dotenv.load_dotenv()
 
 
@@ -14,8 +16,7 @@ client = OpenAI(
     base_url="https://api.metisai.ir/openai/v1"
 )
 
-
-def generate_file_tree(path):
+def generate_file_tree(path, gitignore_patterns: list[str]):
     ret = []
 
     try:
@@ -25,12 +26,15 @@ def generate_file_tree(path):
         return ret
 
     for i, item in enumerate(items):
-        if item == 'venv':
+
+        # Check if this item should be ignored
+        if gitignore.is_ignored(item, gitignore_patterns):
             continue
+
         item_path = os.path.join(path, item)
 
         if os.path.isdir(item_path):
-            ret += generate_file_tree(item_path)
+            ret += generate_file_tree(item_path, gitignore_patterns)
         elif item_path.endswith('.py'):
             ret.append(item_path)
 
@@ -95,12 +99,14 @@ def run():
 
     project_dir = args.dir
 
-    py_files = generate_file_tree(project_dir)
+    gitignore_patterns = gitignore.load_patterns(project_dir)
+
+    py_files = generate_file_tree(project_dir, gitignore_patterns)
 
     print(py_files)
 
-    for f in py_files:
-        analyze_file(f)
+    # for f in py_files:
+    #     analyze_file(f)
 
 
 if __name__ == '__main__':
