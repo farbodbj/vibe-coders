@@ -10,8 +10,10 @@ python ./tree_sitter_sample.py --dir [directory for the project]
 
 # Tasks
 
-- [ ] GPT format -> Farbod
-- [ ] gitignore -> K1
-- [ ] treesitter multilang -> Parham
-- [ ] references with ts -> Apeirophobia
+- [ ] GPT format -> Farbod & k1
+- [x] gitignore -> K1
+- [x] treesitter multilang -> Parham
+- [x] references with ts -> Apeirophobia
+- [ ] Project/Directory indexing and traversing
+- [ ] Visualization and diagrams
 
