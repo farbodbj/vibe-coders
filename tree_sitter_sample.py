@@ -3,18 +3,16 @@ import os
 import sys
 
 import dotenv
-import tree_sitter
-import tree_sitter_python as tspython
-from openai import OpenAI
 
 import gitignore
+from models import CommonName, ProjectKnowledgeBase
+from utils.file_parser import FileParser
+from utils.helper import is_supported_file
 
 dotenv.load_dotenv()
 
+CONFIG_FILE_NAME = '.thevibebase.json'
 
-client = OpenAI(
-    base_url="https://api.metisai.ir/openai/v1"
-)
 
 def generate_file_tree(path, gitignore_patterns: list[str]):
     ret = []
@@ -29,65 +27,22 @@ def generate_file_tree(path, gitignore_patterns: list[str]):
 
         # Check if this item should be ignored
         if gitignore.is_ignored(item, gitignore_patterns):
+
             continue
 
         item_path = os.path.join(path, item)
 
         if os.path.isdir(item_path):
             ret += generate_file_tree(item_path, gitignore_patterns)
-        elif item_path.endswith('.py'):
+        elif is_supported_file(item_path):
             ret.append(item_path)
 
     return ret
 
 
-def get_method_name(node: tree_sitter.Node):
-    for child in node.children:
-        if child.type == 'identifier':
-            return child.text.decode()
-    return None
-
-
-def generate_doc(ts: tree_sitter.Node, file_bytes):
-    source = file_bytes[ts.start_byte:ts.end_byte].decode('utf-8')
-    print(source)
-    response = client.responses.create(
-        model="gpt-4.1-nano",
-        input=[
-            {"role": "system", "content": f"""
-Your task is to generate a doc string along with definitions for this {ts.type}
-            """},
-            {"role": "user", "content": source},
-        ]
-    )
-    print(get_method_name(ts), response.output_text)
-
-
-def generate_methods(ts: tree_sitter.Node, file_bytes, indt: str = ""):
-    for node in ts.children:
-        print(indt, node.type)
-        if node.type == 'function_definition':
-            generate_doc(node, file_bytes)
-
-        if node.type == 'class_definition':
-            generate_doc(node, file_bytes)
-            generate_methods(node, file_bytes, indt + '---')
-
-
-lang = tree_sitter.Language(tspython.language())
-parser = tree_sitter.Parser(lang)
-
-
-def analyze_file(path):
-    with open(path, 'r') as file:
-        bts = file.read().encode()
-        file_tree = parser.parse(bts)
-
-        generate_methods(file_tree.root_node, bts, "")
-
-
 def run():
-    agp = argparse.ArgumentParser()
+    agp = argparse.ArgumentParser(
+        prog="The Vibe Base: Ultimate code knowledgebase")
 
     agp.add_argument(
         '--dir',
@@ -95,18 +50,66 @@ def run():
         help="Project repository directory",
     )
 
+    # agp.add_argument(
+    #     '-C',
+    #     '--use-config',
+    #     action='store_true',
+    #     help="Project repository directory",
+    # )
+
+    agp.add_argument(
+        '--name',
+        help="Project repository directory",
+    )
+
+    agp.add_argument(
+        '--description',
+        default='',
+        help="Project repository directory",
+    )
+
+    agp.add_argument(
+        '--common-names',
+        dest="cnames",
+        nargs=2,
+        metavar=('type', 'name'),
+        default=[],
+        action='append',
+        help="Project repository directory",
+    )
+
     args = agp.parse_args()
 
-    project_dir = args.dir
+    project_dir = os.path.abspath(args.dir)
 
+    project = None
+    if os.path.exists(os.path.join(project_dir, CONFIG_FILE_NAME)):
+        with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'r') as f:
+            project = ProjectKnowledgeBase.model_validate_json(f.read())
+    else:
+        project_name = args.name or os.path.dirname(project_dir)
+
+        project = ProjectKnowledgeBase(
+            name=project_name,
+            description=args.description,
+
+            common_names=[CommonName(type=t, name=n) for t, n in args.cnames],
+        )
     gitignore_patterns = gitignore.load_patterns(project_dir)
 
     py_files = generate_file_tree(project_dir, gitignore_patterns)
 
-    print(py_files)
+    if not project_dir.endswith('/'):
+        project_dir += '/'
 
-    # for f in py_files:
-    #     analyze_file(f)
+    for f in py_files:
+        parser = FileParser(project, f, project_dir=project_dir)
+
+        parser.analyze_file()
+
+    json_output = project.model_dump_json()
+    with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'w') as conf:
+        conf.write(json_output)
 
 
 if __name__ == '__main__':
