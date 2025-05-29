@@ -52,7 +52,7 @@ def generate_doc(ts: tree_sitter.Node, file_bytes):
     source = file_bytes[ts.start_byte:ts.end_byte].decode('utf-8')
     print(source)
     response = client.responses.create(
-        model="gpt-4.1",
+        model="gpt-4.1-nano",
         input=[
             {"role": "system", "content": f"""
 Your task is to generate a doc string along with definitions for this {ts.type}
