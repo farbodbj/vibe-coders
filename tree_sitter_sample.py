@@ -4,9 +4,12 @@ import sys
 from utils.helper import is_supported_file
 import dotenv
 
+from models import CommonName, ProjectKnowledgeBase
 from utils.file_parser import FileParser
 
 dotenv.load_dotenv()
+
+CONFIG_FILE_NAME = '.thevibebase.json'
 
 
 def generate_file_tree(path):
@@ -32,7 +35,8 @@ def generate_file_tree(path):
 
 
 def run():
-    agp = argparse.ArgumentParser()
+    agp = argparse.ArgumentParser(
+        prog="The Vibe Base: Ultimate code knowledgebase")
 
     agp.add_argument(
         '--dir',
@@ -40,19 +44,62 @@ def run():
         help="Project repository directory",
     )
 
+    # agp.add_argument(
+    #     '-C',
+    #     '--use-config',
+    #     action='store_true',
+    #     help="Project repository directory",
+    # )
+
+    agp.add_argument(
+        '--name',
+        help="Project repository directory",
+    )
+
+    agp.add_argument(
+        '--description',
+        default='',
+        help="Project repository directory",
+    )
+
+    agp.add_argument(
+        '--common-names',
+        dest="cnames",
+        nargs=2,
+        metavar=('type', 'name'),
+        default=[],
+        action='append',
+        help="Project repository directory",
+    )
+
     args = agp.parse_args()
 
     project_dir = args.dir
 
+    project = None
+    if os.path.exists(os.path.join(project_dir, CONFIG_FILE_NAME)):
+        with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'r') as f:
+            project = ProjectKnowledgeBase.model_validate_json(f.read())
+    else:
+        project_name = args.name or os.path.dirname(project_dir)
+
+        project = ProjectKnowledgeBase(
+            name=project_name,
+            description=args.description,
+
+            common_names=[CommonName(type=t, name=n) for t, n in args.cnames],
+        )
+
     py_files = generate_file_tree(project_dir)
 
-    print(py_files)
-
     for f in py_files:
-        print(f)
-        parser = FileParser(f)
+        parser = FileParser(project, f)
 
         parser.analyze_file()
+
+    json_output = project.model_dump_json()
+    with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'w') as conf:
+        conf.write(json_output)
 
 
 if __name__ == '__main__':

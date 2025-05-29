@@ -1,6 +1,8 @@
 import tree_sitter
 import os
 
+from models import ProjectKnowledgeBase
+
 
 class BaseLangConf():
     @classmethod
@@ -9,6 +11,18 @@ class BaseLangConf():
 
     @classmethod
     def getMethodName(cls, node: tree_sitter.Node):
+        raise NotImplementedError()
+
+    @classmethod
+    def generateIdentifier(cls, project: ProjectKnowledgeBase, node: tree_sitter.Node):
+        raise NotImplementedError()
+
+    @classmethod
+    def isWorthyScope(cls, project: ProjectKnowledgeBase, node: tree_sitter.Node):
+        raise NotImplementedError()
+
+    @classmethod
+    def generateNodePath(cls, node: tree_sitter.Node):
         raise NotImplementedError()
 
 
@@ -23,7 +37,25 @@ class PythonLangConf(BaseLangConf):
             if child.type == 'identifier':
                 return child.text.decode()
         return None
+    
+    @classmethod
+    def generateIdentifier(cls, project: ProjectKnowledgeBase, file_path: str, node: tree_sitter.Node):
+        return f"{project.name}:{file_path}:{cls.generateNodePath(node)}"
 
+    @classmethod
+    def isWorthyScope(cls, node: tree_sitter.Node):
+        return node.type == 'function_definition' or node.type == 'class_definition'
+
+    @classmethod
+    def generateNodePath(cls, node: tree_sitter.Node):
+        sections = []
+        while node:
+            if cls.isWorthyScope(node):
+                sections.append(cls.getMethodName(node))
+
+            node = node.parent
+        return '.'.join(reversed(sections))
+      
 
 class JavaScriptLangConf(BaseLangConf):
     @classmethod
@@ -124,3 +156,4 @@ def get_lang_conf_for_file(file_path):
         return RustLangConf
     else:
         raise ValueError(f"Unsupported file type: {ext}")
+
