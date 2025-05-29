@@ -1,16 +1,18 @@
 import argparse
 import os
 import sys
-from utils.helper import is_supported_file
+
 import dotenv
 
+import gitignore
 from models import CommonName, ProjectKnowledgeBase
 from utils.file_parser import FileParser
-import gitignore
+from utils.helper import is_supported_file
 
 dotenv.load_dotenv()
 
 CONFIG_FILE_NAME = '.thevibebase.json'
+
 
 def generate_file_tree(path, gitignore_patterns: list[str]):
     ret = []
@@ -78,7 +80,7 @@ def run():
 
     args = agp.parse_args()
 
-    project_dir = args.dir
+    project_dir = os.path.abspath(args.dir)
 
     project = None
     if os.path.exists(os.path.join(project_dir, CONFIG_FILE_NAME)):
@@ -97,15 +99,17 @@ def run():
 
     py_files = generate_file_tree(project_dir, gitignore_patterns)
 
+    if not project_dir.endswith('/'):
+        project_dir += '/'
+
     for f in py_files:
-        parser = FileParser(project, f)
+        parser = FileParser(project, f, project_dir=project_dir)
 
         parser.analyze_file()
 
     json_output = project.model_dump_json()
     with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'w') as conf:
         conf.write(json_output)
-
 
 
 if __name__ == '__main__':

@@ -1,16 +1,11 @@
-from tree_sitter import Parser
-from openai import OpenAI
-import tree_sitter
-import tree_sitter_python
-import tree_sitter_javascript
-import tree_sitter_cpp
-import tree_sitter_go
-import tree_sitter_rust
 from typing import Optional
-from utils.helper import get_lang_conf_for_file
+
+import tree_sitter
+from openai import OpenAI
 
 from models import Node, ProjectKnowledgeBase
-
+from utils.helper import get_lang_conf_for_file
+from utils.lang_conf import BaseLangConf
 
 
 class OpenAIClient:
@@ -25,7 +20,6 @@ class OpenAIClient:
         return cls._client
 
 
-
 class FileParser():
     file = None
     file_bytes: bytes = None
@@ -35,8 +29,10 @@ class FileParser():
 
     file_ref: Node = None
 
-    def __init__(self, project: ProjectKnowledgeBase, path: str):
-        self.path = path
+    def __init__(self, project: ProjectKnowledgeBase, path: str, project_dir: str = ""):
+        self.project_dir = project_dir
+        self.full_path = path
+        self.path = path.replace(project_dir, "")
         self.parser, self.lang_conf, = get_lang_conf_for_file(path)
         self.client = OpenAIClient()
 
@@ -54,7 +50,7 @@ class FileParser():
         project.nodes[self.file_ref.gid] = self.file_ref
 
     def analyze_file(self):
-        with open(self.path, 'rb') as file:
+        with open(self.full_path, 'rb') as file:
             self.file = file
             self.file_bytes = file.read()
             self.tree = self.parser.parse(self.file_bytes)
