@@ -7,6 +7,7 @@ import tree_sitter_python as tspython
 from pathlib import Path
 from textwrap import dedent
 from typing import Dict, List, Tuple
+from utils.gitignore import is_ignored
 
 dotenv.load_dotenv()
 
@@ -129,7 +130,7 @@ class Doc:
         
         for root, dirs, files in os.walk(path, followlinks=False):
             # Filter out hidden directories and common non-code directories
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', 'node_modules', '.git', 'venv', 'env']]
+            dirs[:] = [d for d in dirs if not d.startswith('.') and not is_ignored(d)]
             
             # Get relative path from project root
             rel_path = os.path.relpath(root, path)

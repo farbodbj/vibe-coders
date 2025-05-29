@@ -15,7 +15,6 @@ def load_patterns(project_dir) -> list[str]:
                 # Skip empty lines and comments
                 if line and not line.startswith('#'):
                     patterns.append(line)
-    
     return patterns
 
 
@@ -50,14 +49,3 @@ def is_ignored(path: str, patterns: list[str]) -> bool:
                     return True
 
     return False
-
-
-if __name__ == "__main__":
-
-    patterns = load_patterns(".")
-
-    isit = is_ignored(
-        path = "deploy/Dockerfile",
-        patterns = patterns
-    )
-    print(isit)
