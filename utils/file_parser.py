@@ -1,16 +1,20 @@
-import tree_sitter
-import tree_sitter_python as tspython
+from tree_sitter import Parser
 from openai import OpenAI
+import tree_sitter
+import tree_sitter_python
+import tree_sitter_javascript
+import tree_sitter_cpp
+import tree_sitter_go
+import tree_sitter_rust
+from typing import Optional
+from utils.helper import get_lang_conf_for_file
 
 from models import Node, ProjectKnowledgeBase
-from utils.lang_conf import BaseLangConf, PythonLangConf
-
-lang = tree_sitter.Language(tspython.language())
-parser = tree_sitter.Parser(lang)
 
 
-class OpenAIClient():
-    _client = None
+
+class OpenAIClient:
+    _client: Optional[OpenAI] = None
 
     def __new__(cls, *args, **kwargs):
         if cls._client:
@@ -19,6 +23,7 @@ class OpenAIClient():
             base_url="https://api.metisai.ir/openai/v1"
         )
         return cls._client
+
 
 
 class FileParser():
@@ -32,8 +37,7 @@ class FileParser():
 
     def __init__(self, project: ProjectKnowledgeBase, path: str):
         self.path = path
-        self.parser = parser
-        self.lang_conf = PythonLangConf
+        self.parser, self.lang_conf, = get_lang_conf_for_file(path)
         self.client = OpenAIClient()
 
         self.project = project
@@ -50,15 +54,13 @@ class FileParser():
         project.nodes[self.file_ref.gid] = self.file_ref
 
     def analyze_file(self):
-        with open(self.path) as file:
+        with open(self.path, 'rb') as file:
             self.file = file
-            self.file_bytes = file.read().encode()
+            self.file_bytes = file.read()
             self.tree = self.parser.parse(self.file_bytes)
-
             self.generate_tags(self.tree.root_node)
 
     def generate_method_doc(self, node: tree_sitter.Node):
-        # source = self.file_bytes[node.start_byte:node.end_byte].decode('utf-8')
         source = node.text.decode('utf-8')
         response = self.client.responses.create(
             model="gpt-4.1-nano",
@@ -86,3 +88,4 @@ class FileParser():
         for node in root.children:
             if self.lang_conf.isDocNeeded(node):
                 self.generate_method_doc(node)
+            self.generate_tags(node)

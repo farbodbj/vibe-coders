@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-
+from utils.helper import is_supported_file
 import dotenv
 
 from models import CommonName, ProjectKnowledgeBase
@@ -21,14 +21,14 @@ def generate_file_tree(path):
         print(f"Error reading directory {path}: {e}")
         return ret
 
-    for i, item in enumerate(items):
+    for item in items:
         if item == 'venv':
             continue
         item_path = os.path.join(path, item)
 
         if os.path.isdir(item_path):
             ret += generate_file_tree(item_path)
-        elif item_path.endswith('.py'):
+        elif is_supported_file(item_path):
             ret.append(item_path)
 
     return ret
@@ -95,7 +95,7 @@ def run():
     for f in py_files:
         parser = FileParser(project, f)
 
-        # parser.analyze_file()
+        parser.analyze_file()
 
     json_output = project.model_dump_json()
     with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'w') as conf:
