@@ -80,15 +80,15 @@ def analyze_file(path):
 
 
 def run():
-    parser = argparse.ArgumentParser()
+    agp = argparse.ArgumentParser()
 
-    parser.add_argument(
-        'dir',
+    agp.add_argument(
+        '--dir',
         default=os.getcwd(),
         help="Project repository directory",
     )
 
-    args = parser.parse_args()
+    args = agp.parse_args()
 
     project_dir = args.dir
 
