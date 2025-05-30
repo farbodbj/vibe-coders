@@ -6,6 +6,7 @@ import dotenv
 
 import gitignore
 from models import CommonName, ProjectKnowledgeBase
+from utils.directory_parser import parse_dir
 from utils.file_parser import FileParser
 from utils.helper import is_supported_file
 
@@ -58,6 +59,13 @@ def run():
     # )
 
     agp.add_argument(
+        '--no-readmes',
+        dest='no_readmes',
+        action='store_true',
+        help="Project repository directory",
+    )
+
+    agp.add_argument(
         '--name',
         help="Project repository directory",
     )
@@ -106,6 +114,14 @@ def run():
         parser = FileParser(project, f, project_dir=project_dir)
 
         parser.analyze_file()
+
+    parse_dir(
+        path=project_dir,
+        project=project,
+        gitignore_patterns=gitignore_patterns,
+        project_dir=project_dir,
+        generate_readme_files=not args.no_readmes,
+    )
 
     json_output = project.model_dump_json()
     with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'w') as conf:
