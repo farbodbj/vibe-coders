@@ -55,18 +55,18 @@ def parse_dir(
         [project.nodes[item].short_doc for item, p in subsections]
     )
 
-    if relp != '':  # Main project directory, use different function?
-        node = Node(
-            gid=f"{project.name}:{relp}",
-            identifier=relp,
-            file=relp,
-            full_path=relp,
-            path=relp,
+    # if relp != '':  # Main project directory, use different function?
+    node = Node(
+        gid=f"{project.name}:{relp}",
+        identifier=relp,
+        file=relp,
+        full_path=relp,
+        path=relp,
 
-            node_type="directory",
-            short_doc=doc,
-        )
-        project.nodes[node.gid] = node
+        node_type="directory",
+        short_doc=doc,
+    )
+    project.nodes[node.gid] = node
 
     if generate_readme_files:
         mddoc = generate_markdown_directory_documentation(
