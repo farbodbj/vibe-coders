@@ -14,6 +14,7 @@ def parse_dir(
     project_dir: str, gitignore_patterns: list[str],
     generate_readme_files: bool = True
 ):
+    # print("Generating docs for", path)
     try:
         items = os.listdir(path)
     except OSError as e:
@@ -28,19 +29,20 @@ def parse_dir(
             continue
 
         if os.path.isdir(item):
+            # print("Checking dir", item)
             parse_dir(
-                path=item, project=project, project_dir=project_dir,
+                path=os.path.join(path, item), project=project, project_dir=project_dir,
                 gitignore_patterns=gitignore_patterns,
                 generate_readme_files=generate_readme_files,
             )
             subsections.append(
-                f"{project.name}:{item.replace(project_dir, '')}"
+                (f"{project.name}:{item.replace(project_dir, '')}", item)
             )
         else:
             try:
                 langs.add(get_lang_conf_for_file(item)[2])
                 subsections.append(
-                    f"{project.name}:{item.replace(project_dir, '')}"
+                    (f"{project.name}:{item.replace(project_dir, '')}", item)
                 )
             except ValueError as e:
                 pass
@@ -50,7 +52,7 @@ def parse_dir(
     s = Spinner(f"Generating docs for {relp} directory ")
     doc = generate_directory_documentation(
         langs, path,
-        [project.nodes[item].short_doc for item in subsections]
+        [project.nodes[item].short_doc for item, p in subsections]
     )
 
     if relp != '':  # Main project directory, use different function?
@@ -69,8 +71,32 @@ def parse_dir(
     if generate_readme_files:
         mddoc = generate_markdown_directory_documentation(
             langs, path,
-            [project.nodes[item].short_doc for item in subsections]
+            [project.nodes[item].short_doc for item, p in subsections]
         )
-        with open(os.path.join(path, 'README.md'), 'a') as md_file:
+        with open(os.path.join(path, 'README.md'), 'w') as md_file:
+            # print(os.path.join(path, 'README.md'))
             md_file.write(mddoc)
+
+            for id, p in subsections:
+                if os.path.isdir(p):
+                    file_md = f"## [[{project.nodes[id].path}]] \n"
+                    file_md += project.nodes[id].short_doc
+                    file_md += "\n\n"
+                    md_file.write(file_md)
+                    continue
+
+                file_md = f"## [[{project.nodes[id].path}]] \n"
+                file_md += project.nodes[id].short_doc
+                file_md += "\n\n"
+                for key, n in project.nodes.items():
+                    if key == id:
+                        continue
+                    if key.startswith(id):
+                        # file_md += f'* {n.path}\n\n'
+                        v = '\n'.join(
+                            ["\t" + x for x in n.short_doc.split('\n')])
+                        file_md += f'{v}\n\n'
+                file_md += "\n\n"
+                md_file.write(file_md)
+
     s.done()
