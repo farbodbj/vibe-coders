@@ -10,7 +10,11 @@ import os
 import glob
 
 # Initialize GitHub wrapper and toolkit
-github = GitHubAPIWrapper()
+github = GitHubAPIWrapper(
+    github_repository = "farbodbj/vibe-coders",
+    github_app_id = "1340805",
+    github_app_private_key = open("vibedocumentor.2025-05-29.private-key.pem", "r").read()
+)
 toolkit = GitHubToolkit.from_github_api_wrapper(github)
 
 tools = []
@@ -24,7 +28,7 @@ tools.append(git_tool)
 
 # Initialize the language model
 llm = ChatOpenAI(
-    model="gpt-4.1-nano",
+    model="gpt-4.1",
     temperature=0.1
 )
 
