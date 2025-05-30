@@ -1,22 +1,9 @@
-from typing import Optional
-
 import tree_sitter
 from openai import OpenAI
-
 from models import Node, ProjectKnowledgeBase
 from utils.lang_conf import BaseLangConf
-
-
-class OpenAIClient:
-    _client: Optional[OpenAI] = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._client:
-            return cls._client
-        cls._client = OpenAI(
-            base_url="https://api.metisai.ir/openai/v1"
-        )
-        return cls._client
+from llms import OpenAIClient
+from helper import get_lang_conf_for_file
 
 
 class FileParser():
