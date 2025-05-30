@@ -41,9 +41,9 @@ def parse_dir(
             )
         else:
             try:
-                langs.add(get_lang_conf_for_file(item)[2])
+                langs.add(get_lang_conf_for_file(full_path)[2])
                 subsections.append(
-                    (f"{project.name}:{item.replace(project_dir, '')}", item)
+                    (f"{project.name}:{full_path.replace(project_dir, '')}", item)
                 )
             except ValueError as e:
                 pass
@@ -51,6 +51,7 @@ def parse_dir(
     relp = path.replace(project_dir, '')
 
     s = Spinner(f"Generating docs for {relp} directory ")
+    [print(item) for item, p in subsections]
     doc = generate_directory_documentation(
         langs, path,
         [project.nodes[item].short_doc for item, p in subsections]
