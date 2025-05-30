@@ -6,8 +6,10 @@ import dotenv
 
 import gitignore
 from models import CommonName, ProjectKnowledgeBase
+from utils.directory_parser import parse_dir
 from utils.file_parser import FileParser
 from utils.helper import is_supported_file
+from utils.spinner import Spinner
 
 dotenv.load_dotenv()
 
@@ -58,6 +60,13 @@ def run():
     # )
 
     agp.add_argument(
+        '--no-readmes',
+        dest='no_readmes',
+        action='store_true',
+        help="Project repository directory",
+    )
+
+    agp.add_argument(
         '--name',
         help="Project repository directory",
     )
@@ -99,6 +108,8 @@ def run():
 
     py_files = generate_file_tree(project_dir, gitignore_patterns)
 
+    # s = Spinner("Generating Docs")
+
     if not project_dir.endswith('/'):
         project_dir += '/'
 
@@ -107,9 +118,18 @@ def run():
 
         parser.analyze_file()
 
+    parse_dir(
+        path=project_dir,
+        project=project,
+        gitignore_patterns=gitignore_patterns,
+        project_dir=project_dir,
+        generate_readme_files=not args.no_readmes,
+    )
+
     json_output = project.model_dump_json()
     with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'w') as conf:
         conf.write(json_output)
+    # s.done()
 
 
 if __name__ == '__main__':
