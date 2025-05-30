@@ -39,10 +39,10 @@ class FileParser():
 
         self.file_ref = Node(
             gid=f"{project.name}:{path}",
-            identifier=path,
-            file=path,
-            full_path=path,
-            path=path,
+            identifier=self.path,
+            file=self.path,
+            full_path=self.path,
+            path=self.path,
 
             node_type="file",
         )
