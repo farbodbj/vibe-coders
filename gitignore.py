@@ -1,5 +1,6 @@
-import os
 import fnmatch
+import os
+
 
 def load_patterns(project_dir) -> list[str]:
     """
@@ -15,7 +16,7 @@ def load_patterns(project_dir) -> list[str]:
                 # Skip empty lines and comments
                 if line and not line.startswith('#'):
                     patterns.append(line)
-    
+
     return patterns
 
 
@@ -23,10 +24,10 @@ def is_ignored(path: str, patterns: list[str]) -> bool:
     """
         Check if a path should be ignored based on .gitignore patterns
     """
-    
+
     # Normalize path separators for cross-platform compatibility
     path = path.replace(os.sep, '/')
-    
+
     for pattern in patterns:
         # Handle directory patterns (ending with /)
         if pattern.endswith('/'):
@@ -41,7 +42,7 @@ def is_ignored(path: str, patterns: list[str]) -> bool:
             # Handle file patterns
             if fnmatch.fnmatch(path, pattern):
                 return True
-            
+
             # Also check if any parent directory matches the pattern
             path_parts = path.split('/')
             for i in range(len(path_parts)):
@@ -57,7 +58,7 @@ if __name__ == "__main__":
     patterns = load_patterns(".")
 
     isit = is_ignored(
-        path = "deploy/Dockerfile",
-        patterns = patterns
+        path="deploy/Dockerfile",
+        patterns=patterns
     )
     print(isit)
