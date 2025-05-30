@@ -28,21 +28,22 @@ def parse_dir(
         if gitignore.is_ignored(item, gitignore_patterns):
             continue
 
-        if os.path.isdir(item):
+        full_path = os.path.join(path, item)
+        if os.path.isdir(full_path):
             # print("Checking dir", item)
             parse_dir(
-                path=os.path.join(path, item), project=project, project_dir=project_dir,
+                path=full_path, project=project, project_dir=project_dir,
                 gitignore_patterns=gitignore_patterns,
                 generate_readme_files=generate_readme_files,
             )
             subsections.append(
-                (f"{project.name}:{item.replace(project_dir, '')}", item)
+                (f"{project.name}:{full_path.replace(project_dir, '')}", item)
             )
         else:
             try:
-                langs.add(get_lang_conf_for_file(item)[2])
+                langs.add(get_lang_conf_for_file(full_path)[2])
                 subsections.append(
-                    (f"{project.name}:{item.replace(project_dir, '')}", item)
+                    (f"{project.name}:{full_path.replace(project_dir, '')}", item)
                 )
             except ValueError as e:
                 pass
@@ -50,6 +51,7 @@ def parse_dir(
     relp = path.replace(project_dir, '')
 
     s = Spinner(f"Generating docs for {relp} directory ")
+    [print(item) for item, p in subsections]
     doc = generate_directory_documentation(
         langs, path,
         [project.nodes[item].short_doc for item, p in subsections]
