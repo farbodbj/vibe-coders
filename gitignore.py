@@ -12,7 +12,6 @@ def load_patterns(project_dir) -> list[str]:
     if os.path.exists(gitignore_path):
         with open(gitignore_path, 'r', encoding='utf-8') as f:
             for line in f:
-                print("Git ignore", f)
                 line = line.strip()
                 # Skip empty lines and comments
                 if line and not line.startswith('#'):
