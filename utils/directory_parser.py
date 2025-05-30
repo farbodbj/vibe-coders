@@ -28,10 +28,11 @@ def parse_dir(
         if gitignore.is_ignored(item, gitignore_patterns):
             continue
 
-        if os.path.isdir(item):
+        full_path = os.path.join(path, item)
+        if os.path.isdir(full_path):
             # print("Checking dir", item)
             parse_dir(
-                path=item, project=project, project_dir=project_dir,
+                path=full_path, project=project, project_dir=project_dir,
                 gitignore_patterns=gitignore_patterns,
                 generate_readme_files=generate_readme_files,
             )
