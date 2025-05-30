@@ -108,7 +108,7 @@ def run():
 
     py_files = generate_file_tree(project_dir, gitignore_patterns)
 
-    s = Spinner("Generating Docs")
+    # s = Spinner("Generating Docs")
 
     if not project_dir.endswith('/'):
         project_dir += '/'
@@ -129,7 +129,7 @@ def run():
     json_output = project.model_dump_json()
     with open(os.path.join(project_dir, CONFIG_FILE_NAME), 'w') as conf:
         conf.write(json_output)
-    s.done()
+    # s.done()
 
 
 if __name__ == '__main__':
