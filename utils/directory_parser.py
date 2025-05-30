@@ -37,7 +37,7 @@ def parse_dir(
                 generate_readme_files=generate_readme_files,
             )
             subsections.append(
-                (f"{project.name}:{item.replace(project_dir, '')}", item)
+                (f"{project.name}:{full_path.replace(project_dir, '')}", item)
             )
         else:
             try:
