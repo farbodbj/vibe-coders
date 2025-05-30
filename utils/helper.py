@@ -1,20 +1,16 @@
 import os
+from typing import Dict, Type
+
 import tree_sitter
-import tree_sitter_python
-import tree_sitter_javascript
 import tree_sitter_cpp
 import tree_sitter_go
+import tree_sitter_javascript
+import tree_sitter_python
 import tree_sitter_rust
-from typing import Dict, Type
 from tree_sitter import Language
-from utils.lang_conf import (
-    BaseLangConf,
-    PythonLangConf,
-    JavaScriptLangConf,
-    CppLangConf,
-    GoLangConf,
-    RustLangConf
-)
+
+from utils.lang_conf import (BaseLangConf, CppLangConf, GoLangConf,
+                             JavaScriptLangConf, PythonLangConf, RustLangConf)
 
 
 def initialize_languages() -> Dict[str, Language]:
@@ -45,15 +41,15 @@ def get_lang_conf_for_file(file_path: str) -> Type[BaseLangConf]:
     ext = ext.lower()
 
     if ext == '.py':
-        return languages['python'], PythonLangConf
+        return languages['python'], PythonLangConf, 'python',
     elif ext == '.js':
-        return languages['javascript'], JavaScriptLangConf
+        return languages['javascript'], JavaScriptLangConf, 'javascript',
     elif ext in ['.cpp', '.hpp', '.cc', '.cxx', '.h']:
-        return languages['cpp'], CppLangConf
+        return languages['cpp'], CppLangConf, 'C++',
     elif ext == '.go':
-        return languages['go'], GoLangConf
+        return languages['go'], GoLangConf, 'Go'
     elif ext == '.rs':
-        return languages['rust'], RustLangConf
+        return languages['rust'], RustLangConf, 'Rust'
     else:
         raise ValueError(f"Unsupported file type: {ext}")
 
@@ -74,7 +70,7 @@ def is_supported_file(file_path):
         '.go',   # Go
         '.js', '.ts', '.jsx', '.tsx',  # JavaScript/TypeScript
         '.rs',   # Rust
-        '.java', # Java
+        '.java',  # Java
     }
     _, ext = os.path.splitext(file_path)
     return ext.lower() in supported_extensions
