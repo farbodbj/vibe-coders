@@ -99,15 +99,12 @@ def generate_markdown_directory_documentation(languages: list[str], directory_pa
             Avoid being wordy or writing too long descriptions.
             All your outputs will have markdown(.md) format
             Your output format should be as follows:
-            ```
 
             # <directory_name>
             <description of the directory in several sentences>
 
             ## <filename or subdirectory name>
             <description of file or breif description of the subdirectory>
-
-            ```
 
             -- directory path: 
             {directory_path}
@@ -118,4 +115,3 @@ def generate_markdown_directory_documentation(languages: list[str], directory_pa
         ]
     )
     return response.choices[0].message.content
-

@@ -6,6 +6,7 @@ from docgen.generators import (generate_directory_documentation,
                                generate_markdown_directory_documentation)
 from models import Node, ProjectKnowledgeBase
 from utils.helper import get_lang_conf_for_file
+from utils.spinner import Spinner
 
 
 def parse_dir(
@@ -23,8 +24,6 @@ def parse_dir(
     langs = set()
 
     for i, item in enumerate(items):
-        print("Generating docs for ", item,
-              gitignore.is_ignored(item, gitignore_patterns))
         if gitignore.is_ignored(item, gitignore_patterns):
             continue
 
@@ -46,12 +45,13 @@ def parse_dir(
             except ValueError as e:
                 pass
 
+    relp = path.replace(project_dir, '')
+
+    s = Spinner(f"Generating docs for {relp} directory ")
     doc = generate_directory_documentation(
         langs, path,
         [project.nodes[item].short_doc for item in subsections]
     )
-
-    relp = path.replace(project_dir, '')
 
     if relp != '':  # Main project directory, use different function?
         node = Node(
@@ -73,3 +73,4 @@ def parse_dir(
         )
         with open(os.path.join(path, 'README.md'), 'a') as md_file:
             md_file.write(mddoc)
+    s.done()
