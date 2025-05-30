@@ -9,6 +9,7 @@ from llms import OpenAIClient
 from models import Node, ProjectKnowledgeBase
 from utils.helper import get_lang_conf_for_file
 from utils.lang_conf import BaseLangConf
+from utils.spinner import Spinner
 
 
 class FileParser():
@@ -64,6 +65,8 @@ class FileParser():
         if self.project.nodes.get(id, None) is not None:
             self.nodes.append(self.project.nodes.get(id))
             return
+        s = Spinner(
+            f"Generating docs for {self.path} -> {self.lang_conf.getMethodName(node)}")
         doc = generate_method_documentation(ParsedFunc(
             name=self.lang_conf.getMethodName(node),
             source=source,
@@ -80,6 +83,8 @@ class FileParser():
         self.nodes.append(saved_node)
         self.project.nodes[saved_node.gid] = saved_node
 
+        s.done()
+
     def generate_tags(self, root: tree_sitter.Node):
         for node in root.children:
             if self.lang_conf.isDocNeeded(node):
@@ -87,7 +92,9 @@ class FileParser():
             self.generate_tags(node)
 
     def generate_file_doc(self):
+        s = Spinner(f"Generating docs for {self.path}")
         self.file_ref.short_doc = generate_file_documentation(
             self.lang, os.path.basename(self.full_path), self.path,
             [node.short_doc for node in self.nodes]
         )
+        s.done()
