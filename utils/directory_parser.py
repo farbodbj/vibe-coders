@@ -31,7 +31,7 @@ def parse_dir(
         if os.path.isdir(item):
             # print("Checking dir", item)
             parse_dir(
-                path=os.path.join(path, item), project=project, project_dir=project_dir,
+                path=item, project=project, project_dir=project_dir,
                 gitignore_patterns=gitignore_patterns,
                 generate_readme_files=generate_readme_files,
             )
