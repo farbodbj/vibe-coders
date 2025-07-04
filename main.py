@@ -63,18 +63,18 @@ def run():
         '--no-readmes',
         dest='no_readmes',
         action='store_true',
-        help="Project repository directory",
+        help="If set, not readme files will be created",
     )
 
     agp.add_argument(
         '--name',
-        help="Project repository directory",
+        help="Project name, if not provided, directory name will be used",
     )
 
     agp.add_argument(
         '--description',
         default='',
-        help="Project repository directory",
+        help="Project description",
     )
 
     agp.add_argument(
@@ -84,7 +84,7 @@ def run():
         metavar=('type', 'name'),
         default=[],
         action='append',
-        help="Project repository directory",
+        help="Common names that this project might be refered to with",
     )
 
     args = agp.parse_args()

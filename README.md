@@ -87,6 +87,21 @@ source venv/bin/activate
 python3 main.py --dir examples
 ```
 
+```bash
+python3 main.py --help
+usage: The Vibe Base: Ultimate code knowledgebase [-h] [--dir DIR] [--no-readmes] [--name NAME] [--description DESCRIPTION]
+                                                  [--common-names type name]
+
+options:
+  -h, --help            show this help message and exit
+  --dir DIR             Project repository directory
+  --no-readmes          If set, not readme files will be created
+  --name NAME           Project name, if not provided, directory name will be used
+  --description DESCRIPTION
+                        Project description
+  --common-names type name
+                        Common names that this project might be refered to with
+```
 ---
 
 ## 🛠️ Configuration
